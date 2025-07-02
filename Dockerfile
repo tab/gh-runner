@@ -17,8 +17,6 @@ RUN useradd -m runner && echo "runner ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 USER runner
 WORKDIR /home/runner
 
-COPY entrypoint.sh entrypoint.sh
-RUN chmod +x entrypoint.sh
-
+COPY --chmod=+x entrypoint.sh /home/runner/entrypoint.sh
 ENTRYPOINT ["/home/runner/entrypoint.sh"]
 
