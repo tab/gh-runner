@@ -2,7 +2,7 @@
 set -euo pipefail
 
 RUNNER_NAME=${RUNNER_NAME:-gh-runner}
-GITHUB_REPO_URL=${GITHUB_REPO_URL:?Must set GITHUB_REPO_URL}
+GITHUB_REPO=${GITHUB_REPO:?Must set GITHUB_REPO}
 GITHUB_PAT=${GITHUB_PAT:?Must set GITHUB_PAT}
 VERSION=${VERSION:-2.325.0}
 
@@ -17,13 +17,19 @@ fi
 
 cd actions-runner
 
+echo "Registering runner to ${GITHUB_REPO}"
+
+TOKEN=$(curl -s -X POST \
+  -H "Authorization: token ${GITHUB_PAT}" \
+  -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/${GITHUB_REPO}/actions/runners/registration-token" \
+  | jq -r .token)
+
 ./config.sh --unattended \
-  --url "$GITHUB_REPO_URL" \
-  --token "$(curl -s -X POST -H "Authorization: token ${GITHUB_PAT}" \
-    ${GITHUB_REPO_URL}/actions/runners/registration-token | jq -r .token)" \
+  --url "https://github.com/${GITHUB_REPO}" \
+  --token "$TOKEN" \
   --name "$RUNNER_NAME" \
   --work "_work" \
   --labels docker,linux
 
 exec ./run.sh
-
