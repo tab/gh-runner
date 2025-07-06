@@ -37,6 +37,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.value }}
             ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Create GitHub Release
         # NOTE: https://github.com/softprops/action-gh-release/releases/tag/v2.3.2
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8
