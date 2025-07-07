@@ -57,7 +57,7 @@ RUN apt-get update && \
 
 RUN groupadd -g 1001 runner && \
     useradd -u 1001 -g runner -m -s /bin/bash runner && \
-    echo "runner ALL=(ALL) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get install, /usr/bin/dpkg" >> /etc/sudoers && \
+    echo "runner ALL=(ALL) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get install, /usr/bin/dpkg, /usr/bin/chown, /usr/bin/mkdir" >> /etc/sudoers && \
     mkdir -p /home/runner/go/bin
 
 COPY --from=goose-downloader --chown=runner:runner --chmod=755 /tmp/goose /home/runner/go/bin/goose

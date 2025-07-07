@@ -20,6 +20,15 @@ log "Repository: ${GITHUB_REPO}"
 log "Runner Name: ${RUNNER_NAME}"
 log "Labels: ${RUNNER_LABELS}"
 
+if [ ! -d "/home/runner/_work" ]; then
+    log "Creating _work directory"
+    mkdir -p /home/runner/_work
+fi
+
+if [ ! -w "/home/runner/_work" ]; then
+    error_exit "No write access to _work directory. Please fix permissions on host: sudo chown -R 1001:1001 /volume1/docker/apps/gh-runner/biinge-api/work"
+fi
+
 cleanup() {
     log "Received termination signal, cleaning up..."
     if [ -f actions-runner/.runner ]; then
