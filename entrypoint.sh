@@ -2,7 +2,7 @@
 set -euo pipefail
 
 log() {
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*" | tee -a /home/runner/runner.log
 }
 
 error_exit() {
@@ -20,6 +20,11 @@ log "Repository: ${GITHUB_REPO}"
 log "Runner Name: ${RUNNER_NAME}"
 log "Labels: ${RUNNER_LABELS}"
 
+if [ ! -w "/home/runner/_work" ]; then
+    log "WARNING: No write access to _work directory"
+    sudo chown -R runner:runner /home/runner/_work || log "Failed to fix _work permissions"
+fi
+
 cleanup() {
     log "Received termination signal, cleaning up..."
     if [ -f actions-runner/.runner ]; then
@@ -27,10 +32,11 @@ cleanup() {
         cd actions-runner
         ./config.sh remove --token "${REMOVAL_TOKEN}" 2>/dev/null || log "Failed to remove runner registration"
     fi
+    log "Cleanup completed"
     exit 0
 }
 
-trap cleanup SIGTERM SIGINT
+trap cleanup SIGTERM SIGINT SIGQUIT SIGHUP
 
 cd actions-runner
 
@@ -68,4 +74,23 @@ if ! ./config.sh --unattended \
 fi
 
 log "Starting runner"
-exec ./run.sh
+
+while true; do
+    log "Runner starting..."
+    if ./run.sh; then
+        log "Runner exited normally"
+        break
+    else
+        EXIT_CODE=$?
+        log "Runner exited with code ${EXIT_CODE}"
+        if [ ${EXIT_CODE} -eq 2 ]; then
+            log "Runner requested restart, restarting in 5 seconds..."
+            sleep 5
+        else
+            log "Runner failed, exiting..."
+            exit ${EXIT_CODE}
+        fi
+    fi
+done
+
+log "Runner service completed"
