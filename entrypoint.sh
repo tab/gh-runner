@@ -13,7 +13,7 @@ error_exit() {
 RUNNER_NAME="${RUNNER_NAME:-gh-runner-$(hostname)}"
 GITHUB_REPO="${GITHUB_REPO:?ERROR: GITHUB_REPO environment variable is required}"
 GITHUB_PAT="${GITHUB_PAT:?ERROR: GITHUB_PAT environment variable is required}"
-RUNNER_LABELS="${RUNNER_LABELS:-docker,linux,$(uname -m)}"
+RUNNER_LABELS="${RUNNER_LABELS:-self-hosted,docker,linux,$(uname -m)}"
 
 log "Starting GitHub Actions Runner"
 log "Repository: ${GITHUB_REPO}"
@@ -40,6 +40,18 @@ cleanup() {
 }
 
 trap cleanup SIGTERM SIGINT
+
+# Docker socket access
+if [ -S /var/run/docker.sock ]; then
+    DOCKER_SOCK_GID=$(stat -c '%g' /var/run/docker.sock)
+    if getent group docker > /dev/null 2>&1; then
+        sudo groupmod -g "$DOCKER_SOCK_GID" docker
+    else
+        sudo groupadd -g "$DOCKER_SOCK_GID" docker
+    fi
+    sudo usermod -aG docker runner
+    log "Docker socket detected (GID: $DOCKER_SOCK_GID), runner added to docker group"
+fi
 
 cd actions-runner
 
@@ -77,4 +89,8 @@ if ! ./config.sh --unattended \
 fi
 
 log "Starting runner"
-exec ./run.sh
+if [ -S /var/run/docker.sock ]; then
+    exec sg docker -c "./run.sh"
+else
+    exec ./run.sh
+fi

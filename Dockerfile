@@ -1,6 +1,6 @@
-FROM alpine:3.20 AS runner-downloader
+FROM alpine:3.22 AS runner-downloader
 
-ARG RUNNER_VERSION=2.325.0
+ARG RUNNER_VERSION=2.327.1
 ARG TARGETARCH
 
 RUN apk add --no-cache curl tar
@@ -18,7 +18,9 @@ RUN case "${TARGETARCH}" in \
     tar xzf actions-runner.tar.gz -C /actions-runner && \
     rm actions-runner.tar.gz
 
-FROM alpine:3.20 AS goose-downloader
+FROM docker:28-cli AS docker-cli
+
+FROM alpine:3.22 AS goose-downloader
 
 ARG GOOSE_VERSION=v3.24.3
 ARG TARGETARCH
@@ -36,7 +38,7 @@ RUN case "${TARGETARCH}" in \
       -o goose && \
     chmod +x goose
 
-FROM debian:12.6-slim AS runtime
+FROM debian:12.11-slim AS runtime
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -57,8 +59,12 @@ RUN apt-get update && \
 
 RUN groupadd -g 1001 runner && \
     useradd -u 1001 -g runner -m -s /bin/bash runner && \
-    echo "runner ALL=(ALL) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get install, /usr/bin/dpkg, /usr/bin/chown, /usr/bin/mkdir" >> /etc/sudoers && \
+    echo "runner ALL=(ALL) NOPASSWD: /usr/bin/apt-get update, /usr/bin/apt-get install, /usr/bin/dpkg, /usr/bin/chown, /usr/bin/mkdir, /usr/sbin/groupadd, /usr/sbin/groupmod, /usr/sbin/usermod" >> /etc/sudoers && \
     mkdir -p /home/runner/go/bin
+
+COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
+RUN mkdir -p /usr/local/lib/docker/cli-plugins
+COPY --from=docker-cli /usr/local/libexec/docker/cli-plugins/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
 
 COPY --from=goose-downloader --chown=runner:runner --chmod=755 /tmp/goose /home/runner/go/bin/goose
 
