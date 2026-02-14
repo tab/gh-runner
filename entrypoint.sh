@@ -25,9 +25,10 @@ if [ ! -d "/home/runner/_work" ]; then
     mkdir -p /home/runner/_work
 fi
 
-if [ ! -w "/home/runner/_work" ]; then
-    error_exit "No write access to _work directory. Please fix permissions on host: sudo chown -R 1001:1001 /volume1/docker/apps/gh-runner/biinge-api/work"
+if ! touch /home/runner/_work/.writetest 2>/dev/null; then
+    error_exit "No write access to _work directory. Please fix permissions on host: sudo chown -R 1001:1001 <work-directory>"
 fi
+rm -f /home/runner/_work/.writetest
 
 cleanup() {
     log "Received termination signal, cleaning up..."
