@@ -41,7 +41,7 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Create GitHub Release
         # NOTE: https://github.com/softprops/action-gh-release/releases/tag/v2.3.2
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b
         with:
           tag_name: ${{ steps.version.outputs.value }}
           name: Release ${{ steps.version.outputs.value }}
