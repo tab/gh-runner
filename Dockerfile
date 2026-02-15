@@ -1,6 +1,6 @@
-FROM alpine:3.22 AS runner-downloader
+FROM alpine:3.23 AS runner-downloader
 
-ARG RUNNER_VERSION=2.327.1
+ARG RUNNER_VERSION=2.331.0
 ARG TARGETARCH
 
 RUN apk add --no-cache curl tar
@@ -20,7 +20,7 @@ RUN case "${TARGETARCH}" in \
 
 FROM docker:28-cli AS docker-cli
 
-FROM alpine:3.22 AS goose-downloader
+FROM alpine:3.23 AS goose-downloader
 
 ARG GOOSE_VERSION=v3.24.3
 ARG TARGETARCH
