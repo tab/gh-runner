@@ -18,7 +18,7 @@ RUN case "${TARGETARCH}" in \
     tar xzf actions-runner.tar.gz -C /actions-runner && \
     rm actions-runner.tar.gz
 
-FROM docker:28-cli AS docker-cli
+FROM docker:29-cli AS docker-cli
 
 FROM alpine:3.23 AS goose-downloader
 
