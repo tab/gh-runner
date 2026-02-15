@@ -38,7 +38,7 @@ RUN case "${TARGETARCH}" in \
       -o goose && \
     chmod +x goose
 
-FROM debian:12.11-slim AS runtime
+FROM debian:13.3-slim AS runtime
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
